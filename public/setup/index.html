@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>安装向导</title>
+    <link rel="stylesheet" href="/setup-assets/style.css">
+</head>
+<body>
+    <main class="setup-shell">
+        <section class="setup-card">
+            <div class="setup-head">
+                <p class="eyebrow">PHOTO LIVE SETUP</p>
+                <h1>安装向导</h1>
+                <p id="statusText">正在检查当前环境…</p>
+            </div>
+
+            <form id="setupForm" class="setup-form">
+                <section class="setup-section">
+                    <h2>站点信息</h2>
+                        <label>
+                            <span>访问地址</span>
+                            <input id="publicBaseUrlInput" placeholder="例如：http://zhibo.example.com">
+                            <small class="hint">示例：`http://zhibo.example.com` 或 `https://photo.yourbrand.com`。这里填别人最终访问这个站点的完整地址。</small>
+                        </label>
+                        <label>
+                            <span>JWT 密钥</span>
+                            <input id="jwtSecretInput" placeholder="例如：photo_live_jwt_2026_xxxxxxxx">
+                            <small class="hint">示例：`photo_live_jwt_2026_xxxxxxxx`。用于后台登录和接口签名，建议保持默认随机值。</small>
+                        </label>
+                </section>
+
+                <section class="setup-section">
+                    <h2>数据库</h2>
+                    <div class="grid">
+                        <label>
+                            <span>主机</span>
+                            <input id="dbHostInput" value="127.0.0.1" placeholder="例如：127.0.0.1">
+                            <small class="hint">示例：`127.0.0.1`、`localhost`、`10.0.0.5`。</small>
+                        </label>
+                        <label>
+                            <span>端口</span>
+                            <input id="dbPortInput" value="3306" placeholder="例如：3306">
+                            <small class="hint">示例：`3306`。宝塔/MySQL 默认一般就是这个端口。</small>
+                        </label>
+                        <label>
+                            <span>数据库名</span>
+                            <input id="dbNameInput" value="photo_live" placeholder="例如：photo_live">
+                            <small class="hint">示例：`photo_live`、`zhibo_live`。安装时会自动建这个数据库。</small>
+                        </label>
+                        <label>
+                            <span>用户名</span>
+                            <input id="dbUserInput" value="root" placeholder="例如：root 或 photo_live_user">
+                            <small class="hint">示例：`root`、`photo_live_user`、`zhibo_admin`。</small>
+                        </label>
+                    </div>
+                    <label>
+                        <span>密码</span>
+                        <input id="dbPasswordInput" type="password" placeholder="填写数据库密码">
+                        <small class="hint">示例：填你创建数据库时设置的密码，不是服务器 root 密码。</small>
+                    </label>
+                    <button id="testDbButton" class="secondary-button" type="button">测试数据库连接</button>
+                    <p class="hint" id="dbTestResult">先测试数据库连接，安装时会自动建库和建表。</p>
+                </section>
+
+                <section class="setup-section">
+                    <h2>存储方式</h2>
+                    <label><span>存储模式</span>
+                        <select id="storageModeInput">
+                            <option value="local">本地存储</option>
+                            <option value="qiniu">七牛云</option>
+                        </select>
+                        <small class="hint">如果只是先跑起来，选“本地存储”；如果正式对外并想省服务器空间，选“七牛云”。</small>
+                    </label>
+                    <div id="qiniuFields" hidden>
+                        <div class="grid">
+                            <label>
+                                <span>Access Key</span>
+                                <input id="qiniuAccessKeyInput" placeholder="例如：AbCdEf1234567890">
+                                <small class="hint">示例：七牛控制台里的 `AccessKey`。</small>
+                            </label>
+                            <label>
+                                <span>Secret Key</span>
+                                <input id="qiniuSecretKeyInput" type="password" placeholder="填写七牛 Secret Key">
+                                <small class="hint">示例：七牛控制台里的 `SecretKey`。</small>
+                            </label>
+                            <label>
+                                <span>Bucket</span>
+                                <input id="qiniuBucketInput" placeholder="例如：photo-live-bucket">
+                                <small class="hint">示例：`photo-live-bucket`、`zhibo-photos`。</small>
+                            </label>
+                            <label>
+                                <span>Zone</span>
+                                <input id="qiniuZoneInput" value="Zone_z0" placeholder="例如：Zone_z0">
+                                <small class="hint">示例：`Zone_z0` 华东、`Zone_z1` 华北、`Zone_z2` 华南。</small>
+                            </label>
+                        </div>
+                        <label>
+                            <span>访问域名</span>
+                            <input id="qiniuDomainInput" placeholder="例如：https://img.example.com">
+                            <small class="hint">示例：`https://img.example.com`。这里填绑定到七牛空间的访问域名，不要填控制台地址。</small>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="setup-section">
+                    <h2>管理员</h2>
+                    <div class="grid">
+                        <label>
+                            <span>用户名</span>
+                            <input id="adminUsernameInput" value="admin" placeholder="例如：admin">
+                            <small class="hint">示例：`admin`、`studio_admin`。这是以后登录后台时用的用户名。</small>
+                        </label>
+                        <label>
+                            <span>显示名称</span>
+                            <input id="adminNicknameInput" value="系统管理员" placeholder="例如：系统管理员">
+                            <small class="hint">示例：`系统管理员`、`光感影视后台`。</small>
+                        </label>
+                    </div>
+                    <label>
+                        <span>密码</span>
+                        <input id="adminPasswordInput" type="password" value="admin123" placeholder="例如：admin123">
+                        <small class="hint">示例：`admin123`、`Jack2026!`。安装完成后请第一时间登录后台修改这个密码。</small>
+                    </label>
+                </section>
+
+                <div class="actions">
+                    <button class="primary-button" type="submit">开始安装</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script src="/setup-assets/app.js"></script>
+</body>
+</html>

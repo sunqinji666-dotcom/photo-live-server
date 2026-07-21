@@ -1,0 +1,47 @@
+{
+  "name": "photo-live-server",
+  "version": "1.0.0",
+  "description": "专业的图片直播系统，支持实时上传、在线浏览、点赞互动",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js",
+    "cli": "node scripts/photo-live-cli.js",
+    "pm2": "pm2 start ecosystem.config.js",
+    "pm2:prod": "NODE_ENV=production pm2 start ecosystem.config.js --env production",
+    "pm2:stop": "pm2 stop photo-live",
+    "pm2:restart": "pm2 restart photo-live",
+    "pm2:logs": "pm2 logs photo-live",
+    "db:init": "mysql -u root -p < database/init.sql",
+    "deploy": "bash deploy.sh"
+  },
+  "keywords": [
+    "photo",
+    "live",
+    "gallery",
+    "qiniu",
+    "upload"
+  ],
+  "author": "Jack <光感影视>",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "exif-reader": "^2.0.3",
+    "express": "^5.2.1",
+    "geoip-lite": "^2.0.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
+    "mysql2": "^3.20.0",
+    "qiniu": "^7.15.1",
+    "sharp": "^0.34.5",
+    "socket.io": "^4.8.3",
+    "ua-parser-js": "^2.0.9"
+  },
+  "devDependencies": {
+    "playwright": "^1.53.0"
+  }
+}

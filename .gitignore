@@ -1,0 +1,34 @@
+# 依赖
+node_modules/
+
+# 环境变量
+.env
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+
+# 上传临时文件
+uploads/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 构建输出
+dist/
+build/
+
+# Private deployment and research material
+research/
+.tmp-*
+API_AUTOMATION.md
+DEPLOY_PROGRESS.md
+RELEASE_READY.md

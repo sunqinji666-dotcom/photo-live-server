@@ -1,0 +1,10 @@
+{
+  "admin": {
+    "style": "/admin-assets/style.css?v=20260405h",
+    "script": "/admin-assets/app.20260422a.js"
+  },
+  "live": {
+    "style": "/live-assets/style.css?v=20260422c",
+    "script": "/live-assets/app.js?v=20260422c"
+  }
+}

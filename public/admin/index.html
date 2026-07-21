@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>我的照片管理台</title>
+    <link rel="stylesheet" href="/admin-assets/style.css?v=20260405h">
+</head>
+<body>
+    <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <p class="eyebrow">MY PHOTO CONSOLE</p>
+            <h1>我的照片管理台</h1>
+            <p class="hint">先创建一个客户相册，再进入它里面整理照片、分类和客户查看设置。</p>
+            <form id="loginForm" class="stack-form">
+                <label>
+                    <span>用户名</span>
+                    <input id="usernameInput" type="text" placeholder="admin" required>
+                </label>
+                <label>
+                    <span>密码</span>
+                    <input id="passwordInput" type="password" placeholder="请输入密码" required>
+                </label>
+                <button class="primary-button" type="submit">登录后台</button>
+            </form>
+            <p class="hint small">默认账号：admin / admin123。上线后请尽快修改密码。</p>
+        </div>
+    </div>
+
+    <div class="dashboard" id="dashboard" hidden>
+        <header class="topbar panel">
+            <div>
+                <p class="eyebrow">MY STUDIO</p>
+                <h2>客户相册总览</h2>
+                <p class="hint">外面只看所有相册，点进某个相册后再做具体管理。</p>
+            </div>
+            <div class="topbar-actions">
+                <div class="user-chip">
+                    <strong id="userName">未登录</strong>
+                    <span>当前账号</span>
+                </div>
+                <button id="cleanupDataButton" class="secondary-button" type="button">清理无用数据</button>
+                <button id="refreshButton" class="secondary-button" type="button">刷新</button>
+                <button id="logoutButton" class="text-button" type="button">退出</button>
+            </div>
+        </header>
+
+        <section class="workspace-view library-screen" id="libraryScreen">
+            <section class="panel library-summary">
+                <div class="panel-head">
+                    <div>
+                        <p class="eyebrow">ALBUM LIBRARY</p>
+                        <h3>我的客户相册</h3>
+                    </div>
+                    <small class="hint" id="liveCountText">0 个相册</small>
+                </div>
+                <div class="overview-grid" id="sidebarOverview"></div>
+            </section>
+
+            <section class="library-grid">
+                <section class="panel compact-library-panel">
+                    <div class="panel-head">
+                        <div>
+                            <p class="eyebrow">NEW ALBUM</p>
+                            <h3>新建相册</h3>
+                        </div>
+                    </div>
+                    <form id="quickCreateForm" class="stack-form">
+                        <label>
+                            <span>相册名称</span>
+                            <input id="quickTitleInput" type="text" placeholder="例如：优利特团拜会 2026" required>
+                        </label>
+                        <label>
+                            <span>拍摄时间</span>
+                            <input id="quickDateInput" type="datetime-local">
+                        </label>
+                        <label>
+                            <span>拍摄地点</span>
+                            <input id="quickLocationInput" type="text" placeholder="例如：南宁 · 会场">
+                        </label>
+                        <button class="primary-button" type="submit">创建并进入管理</button>
+                    </form>
+                </section>
+
+                <section class="panel library-main-panel">
+                    <div class="panel-head">
+                        <div>
+                            <p class="eyebrow">ALBUM LIST</p>
+                            <h3>相册列表</h3>
+                        </div>
+                    </div>
+                    <div class="album-card-grid" id="liveList"></div>
+                </section>
+
+                <section class="panel compact-library-panel" id="userManagementPanel" hidden>
+                    <div class="panel-head">
+                        <div>
+                            <p class="eyebrow">ACCOUNTS</p>
+                            <h3>账号管理</h3>
+                        </div>
+                    </div>
+                    <form id="userForm" class="stack-form">
+                        <label>
+                            <span>账号用户名</span>
+                            <input id="newUsernameInput" type="text" placeholder="例如：studio01">
+                        </label>
+                        <label>
+                            <span>显示名称</span>
+                            <input id="newNicknameInput" type="text" placeholder="例如：摄影师小刘">
+                        </label>
+                        <label>
+                            <span>登录密码</span>
+                            <input id="newPasswordInput" type="password" placeholder="至少 6 位">
+                        </label>
+                        <label>
+                            <span>账号角色</span>
+                            <select id="newUserRoleInput">
+                                <option value="photographer">摄影师</option>
+                                <option value="admin">管理员</option>
+                            </select>
+                        </label>
+                        <button class="primary-button" type="submit">新建账号</button>
+                    </form>
+                    <div class="account-list" id="userList"></div>
+                </section>
+            </section>
+        </section>
+
+        <section class="workspace-view detail-screen" id="detailScreen" hidden>
+            <section class="panel detail-hero">
+                <div class="detail-hero-top">
+                    <button id="backToLibraryButton" class="text-button" type="button">← 返回相册总览</button>
+                    <div class="hero-actions">
+                        <a id="previewLink" class="secondary-button" target="_blank" rel="noreferrer">打开客户页</a>
+                        <button id="copyLinkButton" class="text-button" type="button">复制链接</button>
+                    </div>
+                </div>
+                <div class="detail-hero-body">
+                    <div>
+                        <p class="eyebrow">ALBUM MANAGER</p>
+                        <h3 id="heroTitle">请选择一个相册</h3>
+                        <p class="hint" id="heroSummary">进入相册后可以上传照片、设置客户查看方式和下载权限。</p>
+                    </div>
+                    <div class="share-box compact">
+                        <label>
+                            <span>客户观看链接</span>
+                            <input id="shareLinkInput" type="text" readonly>
+                        </label>
+                        <div class="share-tips" id="shareTips">进入相册后会显示客户观看链接。</div>
+                    </div>
+                </div>
+                <div class="metric-grid" id="metricGrid"></div>
+            </section>
+
+            <section class="detail-shell">
+                <nav class="section-tabs panel section-sidebar">
+                    <button type="button" class="active" data-section="photos">照片管理</button>
+                    <button type="button" data-section="activity">相册信息</button>
+                    <button type="button" data-section="sharing">客户设置</button>
+                    <button type="button" data-section="analytics">观看数据</button>
+                    <button type="button" data-section="logs">操作记录</button>
+                </nav>
+
+                <section class="section-stack">
+                <section class="section-panel active" data-panel="photos">
+                    <section class="panel photo-panel">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">PHOTOS</p>
+                                <h3>照片整理</h3>
+                            </div>
+                            <div class="panel-actions">
+                                <span class="photo-count" id="photoCountText">0 张照片</span>
+                                <button id="toggleBatchModeButton" class="secondary-button" type="button">批量管理</button>
+                                <button id="downloadFilteredButton" class="secondary-button" type="button">打包当前照片</button>
+                            </div>
+                        </div>
+
+                        <div class="photo-utility-bar">
+                            <form class="album-compact-form" id="albumForm">
+                                <input id="albumNameInput" type="text" placeholder="新增分类，例如：主会场">
+                                <input id="albumIconInput" type="text" placeholder="图标" value="📷">
+                                <input id="albumSortInput" type="number" placeholder="排序" value="0">
+                                <button class="secondary-button" type="submit">新增分类</button>
+                            </form>
+                            <div id="albumList" class="album-compact-list"></div>
+                        </div>
+
+                        <div class="filter-bar">
+                            <label>
+                                <span>搜索</span>
+                                <input id="photoSearchInput" type="text" placeholder="标题、描述、标签">
+                            </label>
+                            <label>
+                                <span>分类</span>
+                                <select id="photoAlbumFilter"></select>
+                            </label>
+                            <label>
+                                <span>状态</span>
+                                <select id="photoVisibilityFilter">
+                                    <option value="all">全部</option>
+                                    <option value="public">客户可见</option>
+                                    <option value="private">隐藏中</option>
+                                </select>
+                            </label>
+                            <label>
+                                <span>排序</span>
+                                <select id="photoSortFilter">
+                                    <option value="latest">最新上传</option>
+                                    <option value="oldest">最早上传</option>
+                                    <option value="popular">点赞最多</option>
+                                    <option value="views">浏览最多</option>
+                                </select>
+                            </label>
+                            <button id="adminSmartFilterToggleButton" class="secondary-button" type="button">智能筛选</button>
+                        </div>
+
+                        <div class="admin-smart-filters" id="adminSmartFilters" hidden>
+                            <div class="admin-smart-filters-head">
+                                <strong>智能筛选</strong>
+                                <button id="clearAdminSmartFiltersButton" class="text-button compact-button" type="button">清空筛选</button>
+                            </div>
+                            <div class="admin-smart-filter-grid">
+                                <label>
+                                    <span>机身</span>
+                                    <select id="photoCameraFilter"></select>
+                                </label>
+                                <label>
+                                    <span>镜头</span>
+                                    <select id="photoLensFilter"></select>
+                                </label>
+                                <label>
+                                    <span>焦段</span>
+                                    <select id="photoFocalLengthFilter"></select>
+                                </label>
+                                <label>
+                                    <span>光圈</span>
+                                    <select id="photoApertureFilter"></select>
+                                </label>
+                                <label>
+                                    <span>ISO</span>
+                                    <select id="photoIsoFilter"></select>
+                                </label>
+                                <label>
+                                    <span>格式</span>
+                                    <select id="photoFormatFilter"></select>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="batch-toolbar" id="batchToolbar" hidden>
+                            <div class="batch-toolbar-copy">
+                                <strong id="batchSelectionText">已选择 0 张照片</strong>
+                                <span>批量模式下，点击照片即可勾选，再统一显示、隐藏或删除。</span>
+                            </div>
+                            <div class="batch-toolbar-actions">
+                                <button id="selectAllPhotosButton" class="text-button" type="button">全选当前筛选</button>
+                                <button id="clearSelectedPhotosButton" class="text-button" type="button">清空选择</button>
+                                <button id="batchCopyOriginalLinksButton" class="secondary-button" type="button">复制已选原图链接</button>
+                                <button id="batchCopyPreviewLinksButton" class="secondary-button" type="button">复制已选展示链接</button>
+                                <button id="batchShowPhotosButton" class="secondary-button" type="button">批量显示</button>
+                                <button id="batchHidePhotosButton" class="secondary-button" type="button">批量隐藏</button>
+                                <button id="batchDeletePhotosButton" class="danger-button" type="button">批量删除</button>
+                            </div>
+                        </div>
+
+                        <div class="photo-workspace">
+                            <div class="photo-gallery-shell">
+                                <div class="photo-gallery" id="photoGallery"></div>
+                                <div class="photo-gallery-sentinel" id="photoGallerySentinel" hidden>继续下滑加载更多照片</div>
+                            </div>
+
+                            <aside class="photo-inspector">
+                                <div class="inspector-empty" id="photoInspectorEmpty">
+                                    <strong>选择一张照片</strong>
+                                    <p>右侧可以修改标题、标签、所属分类和客户可见状态。</p>
+                                </div>
+
+                                <div class="inspector-content inspector-batch" id="photoBatchInspector" hidden>
+                                    <div class="batch-inspector-top">
+                                        <div>
+                                            <p class="eyebrow">BATCH PANEL</p>
+                                            <h3>批量照片管理</h3>
+                                            <p class="hint small">右侧现在只针对你当前勾选的照片生效，不再是单张管理。</p>
+                                        </div>
+                                    </div>
+                                    <div class="batch-inspector-stack" id="batchInspectorStack"></div>
+                                    <div class="inspector-meta batch-inspector-meta" id="batchInspectorMeta"></div>
+                                    <div class="stack-form">
+                                        <label>
+                                            <span>批量改分类</span>
+                                            <select id="batchEditorAlbumSelect"></select>
+                                        </label>
+                                        <label>
+                                            <span>批量补充标签</span>
+                                            <input id="batchEditorTagsInput" type="text" placeholder="例如：精选、主视觉">
+                                        </label>
+                                        <div class="actions">
+                                            <button id="batchInspectorApplyAlbumButton" class="secondary-button" type="button">应用分类</button>
+                                            <button id="batchInspectorApplyTagsButton" class="secondary-button" type="button">补充标签</button>
+                                            <button id="batchInspectorShowButton" class="secondary-button" type="button">批量显示</button>
+                                            <button id="batchInspectorHideButton" class="secondary-button" type="button">批量隐藏</button>
+                                            <button id="batchInspectorDeleteButton" class="danger-button" type="button">删除已选</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="inspector-content" id="photoInspectorContent" hidden>
+                                    <div class="inspector-preview">
+                                        <img id="editorPreviewImage" src="" alt="">
+                                    </div>
+                                    <div class="inspector-meta" id="editorMeta"></div>
+                                    <form id="photoEditorForm" class="stack-form">
+                                        <label>
+                                            <span>照片标题</span>
+                                            <input id="editorTitleInput" type="text">
+                                        </label>
+                                        <label>
+                                            <span>照片描述</span>
+                                            <textarea id="editorDescriptionInput" rows="3"></textarea>
+                                        </label>
+                                        <label>
+                                            <span>照片标签</span>
+                                            <input id="editorTagsInput" type="text" placeholder="逗号分隔">
+                                        </label>
+                                        <label>
+                                            <span>所属分类</span>
+                                            <select id="editorAlbumSelect"></select>
+                                        </label>
+                                        <label>
+                                            <span>客户可见状态</span>
+                                            <select id="editorVisibilitySelect">
+                                                <option value="1">显示</option>
+                                                <option value="0">隐藏</option>
+                                            </select>
+                                        </label>
+                                        <div class="actions">
+                                            <button class="primary-button" type="submit">保存照片信息</button>
+                                            <a id="editorOriginalLink" class="secondary-button" target="_blank" rel="noreferrer">查看原图</a>
+                                            <button id="copyOriginalPhotoLinkButton" class="secondary-button" type="button">复制原图链接</button>
+                                            <button id="copyPreviewPhotoLinkButton" class="secondary-button" type="button">复制展示链接</button>
+                                            <button id="deletePhotoButton" class="danger-button" type="button">删除照片</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </aside>
+                        </div>
+                    </section>
+                </section>
+
+                <section class="section-panel" data-panel="activity">
+                    <form id="activityForm" class="panel stack-form live-form">
+                        <input type="hidden" id="liveIdInput">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">ALBUM INFO</p>
+                                <h3>相册信息</h3>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <label>
+                                <span>相册名称</span>
+                                <input id="titleInput" type="text" required>
+                            </label>
+                            <label>
+                                <span>客户链接标识</span>
+                                <input id="slugInput" type="text" placeholder="例如：20260404-210530">
+                            </label>
+                            <label>
+                                <span>副标题</span>
+                                <input id="subtitleInput" type="text" placeholder="例如：年度团拜会">
+                            </label>
+                            <label>
+                                <span>状态</span>
+                                <select id="statusInput">
+                                    <option value="draft">整理中</option>
+                                    <option value="live">可查看</option>
+                                    <option value="ended">已归档</option>
+                                </select>
+                            </label>
+                            <label>
+                                <span>拍摄时间</span>
+                                <input id="eventDateInput" type="datetime-local">
+                            </label>
+                            <label>
+                                <span>拍摄地点</span>
+                                <input id="locationInput" type="text">
+                            </label>
+                            <label class="full">
+                                <span>相册简介</span>
+                                <textarea id="descriptionInput" rows="4"></textarea>
+                            </label>
+                        </div>
+                        <section class="media-setting-card">
+                            <div class="media-setting-copy">
+                                <strong>顶部横幅</strong>
+                                <span>进入相册主界面后，顶部显示的横幅背景。关闭后会回到默认渐变背景。建议上传 16:9 横图，最大 8MB。</span>
+                            </div>
+                            <div class="media-setting-body">
+                                <div class="media-setting-preview">
+                                    <img id="bannerPreviewImage" alt="头图预览">
+                                    <div class="media-setting-placeholder" id="bannerPreviewPlaceholder">未设置横幅，将显示默认背景</div>
+                                </div>
+                                <div class="media-setting-actions">
+                                    <input id="bannerFileInput" type="file" accept="image/*" hidden>
+                                    <label class="toggle compact-toggle">
+                                        <input id="showBannerInput" type="checkbox">
+                                        <span>客户页显示顶部横幅</span>
+                                    </label>
+                                    <button id="pickBannerImageButton" class="secondary-button" type="button">选择横幅</button>
+                                    <button id="uploadBannerImageButton" class="primary-button" type="button">上传并设为横幅</button>
+                                    <button id="clearBannerImageButton" class="text-button danger-text-button" type="button">清空横幅</button>
+                                    <small class="hint">不手动设置时，前台会自动从当前相册随机挑一张照片做顶部背景。</small>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="media-setting-card">
+                            <div class="media-setting-copy">
+                                <strong>开场封面</strong>
+                                <span>客户点开链接第一眼看到的全屏封面。开启后会先显示这张图，倒计时结束后自动进入主界面。</span>
+                            </div>
+                            <div class="media-setting-body">
+                                <div class="media-setting-preview">
+                                    <img id="openingPreviewImage" alt="开场封面预览">
+                                    <div class="media-setting-placeholder" id="openingPreviewPlaceholder">未设置开场封面</div>
+                                </div>
+                                <div class="media-setting-actions">
+                                    <input id="openingFileInput" type="file" accept="image/*" hidden>
+                                    <label class="toggle compact-toggle">
+                                        <input id="showOpeningInput" type="checkbox">
+                                        <span>启用开场封面</span>
+                                    </label>
+                                    <label>
+                                        <span>倒计时秒数</span>
+                                        <input id="openingDurationInput" type="number" min="1" max="9" value="3">
+                                    </label>
+                                    <button id="pickOpeningImageButton" class="secondary-button" type="button">选择开场图</button>
+                                    <button id="uploadOpeningImageButton" class="primary-button" type="button">上传并启用</button>
+                                    <button id="clearOpeningImageButton" class="text-button danger-text-button" type="button">清空开场图</button>
+                                    <small class="hint">建议上传竖版海报，最大 8MB。客户也可以点右上角跳过。</small>
+                                </div>
+                            </div>
+                        </section>
+                        <div class="actions">
+                            <button class="primary-button" type="submit">保存相册信息</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="section-panel" data-panel="sharing">
+                    <form id="sharingForm" class="panel stack-form live-form">
+                        <input id="coverInput" type="hidden">
+                        <input id="bannerInput" type="hidden">
+                        <input id="openingInput" type="hidden">
+                        <input id="themeInput" type="hidden" value="#c76b34">
+                        <input id="layoutModeInput" type="hidden" value="waterfall">
+                        <input id="shareLogoInput" type="hidden">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">CLIENT SETTINGS</p>
+                                <h3>客户设置</h3>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <label>
+                                <span>分享标题</span>
+                                <input id="shareTitleInput" type="text" placeholder="优利特团拜会客户相册">
+                            </label>
+                            <label>
+                                <span>背景音乐</span>
+                                <input id="musicInput" type="url" placeholder="https://...mp3">
+                            </label>
+                            <label class="full">
+                                <span>分享描述</span>
+                                <textarea id="shareDescriptionInput" rows="3"></textarea>
+                            </label>
+                            <label>
+                                <span>访问密码</span>
+                                <input id="accessCodeInput" type="text" placeholder="留空则直接可看">
+                            </label>
+                            <label>
+                                <span>水印文案</span>
+                                <input id="watermarkInput" type="text" placeholder="例如：优利特团拜会 2026">
+                            </label>
+                            <label class="toggle">
+                                <input id="enableShareInput" type="checkbox" checked>
+                                <span>客户页显示分享按钮</span>
+                            </label>
+                            <label class="toggle">
+                                <input id="enableClientLinkCopyInput" type="checkbox">
+                                <span>客户页显示图片外链复制</span>
+                            </label>
+                            <label class="toggle">
+                                <input id="allowWatermarkedDownloadInput" type="checkbox">
+                                <span>允许下载展示图</span>
+                            </label>
+                            <label class="toggle">
+                                <input id="allowOriginalDownloadInput" type="checkbox">
+                                <span>允许下载原图</span>
+                            </label>
+                            <label class="toggle">
+                                <input id="allowBatchDownloadInput" type="checkbox">
+                                <span>允许打包下载</span>
+                            </label>
+                            <label class="toggle">
+                                <input id="watermarkEnabledInput" type="checkbox">
+                                <span>默认展示带水印图片</span>
+                            </label>
+                            <label class="toggle">
+                                <input id="requireReviewInput" type="checkbox">
+                                <span>上传后先隐藏，确认后再给客户看</span>
+                            </label>
+                            <label class="toggle">
+                                <input id="guestUploadInput" type="checkbox">
+                                <span>允许来宾上传照片</span>
+                            </label>
+                            <label class="toggle">
+                                <input id="showPhotographerInput" type="checkbox" checked>
+                                <span>客户页显示摄影师名称</span>
+                            </label>
+                        </div>
+                        <div class="actions">
+                            <button class="primary-button" type="submit">保存客户设置</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="section-panel" data-panel="analytics">
+                    <section class="panel analytics-panel">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">ANALYTICS</p>
+                                <h3>观看数据</h3>
+                            </div>
+                            <small class="hint">自动统计最热照片、设备类型、IP 和访问地区。</small>
+                        </div>
+                        <div class="metric-grid analytics-summary-grid" id="analyticsSummaryGrid"></div>
+                        <div class="analytics-layout">
+                            <section class="analytics-card">
+                                <div class="analytics-card-head">
+                                    <strong>最热照片</strong>
+                                    <span>按浏览量排序</span>
+                                </div>
+                                <div class="analytics-photo-list" id="analyticsTopPhotos"></div>
+                            </section>
+                            <section class="analytics-card">
+                                <div class="analytics-card-head">
+                                    <strong>最热分类</strong>
+                                    <span>按分类累计浏览量</span>
+                                </div>
+                                <div class="analytics-list" id="analyticsTopAlbums"></div>
+                            </section>
+                            <section class="analytics-card">
+                                <div class="analytics-card-head">
+                                    <strong>设备分布</strong>
+                                    <span>客户主要用什么设备看</span>
+                                </div>
+                                <div class="analytics-list" id="analyticsDevices"></div>
+                            </section>
+                            <section class="analytics-card">
+                                <div class="analytics-card-head">
+                                    <strong>地区分布</strong>
+                                    <span>尽量显示到市，取决于 IP 数据库精度</span>
+                                </div>
+                                <div class="analytics-list" id="analyticsLocations"></div>
+                            </section>
+                        </div>
+                        <section class="analytics-card analytics-card-full">
+                            <div class="analytics-card-head">
+                                <strong>最近访问</strong>
+                                <span>设备、IP、地区、时间</span>
+                            </div>
+                            <div class="analytics-visitor-list" id="analyticsRecentVisitors"></div>
+                        </section>
+                    </section>
+                </section>
+
+                <section class="section-panel" data-panel="logs">
+                    <section class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">ACTIVITY LOG</p>
+                                <h3>操作记录</h3>
+                            </div>
+                        </div>
+                        <div id="logList" class="log-list"></div>
+                    </section>
+                </section>
+                </section>
+            </section>
+        </section>
+    </div>
+
+    <section class="upload-composer" id="uploadComposer" hidden>
+        <div class="upload-composer-backdrop" id="closeUploadComposerBackdrop"></div>
+        <div class="upload-composer-panel">
+            <div class="upload-composer-head">
+                <div>
+                    <p class="eyebrow">QUICK UPLOAD</p>
+                    <h3>上传照片</h3>
+                </div>
+                <button id="closeUploadComposerButton" class="text-button" type="button">关闭</button>
+            </div>
+            <form id="uploadForm" class="stack-form">
+                <label>
+                    <span>所属分类</span>
+                    <select id="uploadAlbumSelect"></select>
+                </label>
+                <label>
+                    <span>标题前缀（选填）</span>
+                    <input id="uploadTitlePrefixInput" type="text" placeholder="只有填写时才会批量改标题，例如：签到区">
+                </label>
+                <label>
+                    <span>照片标签</span>
+                    <input id="uploadTagsInput" type="text" placeholder="签到, 主舞台, 合影">
+                </label>
+                <label class="upload-box">
+                    <input id="uploadFilesInput" type="file" accept="image/*" multiple>
+                    <span>点击选择照片，支持多张上传</span>
+                    <small>单张照片请控制在 25MB 以内；系统会自动校验重复文件，同相册重复会跳过，跨相册同图会直接云端秒传复用。</small>
+                </label>
+                <button class="primary-button" type="submit">开始上传</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="upload-session" id="uploadSession" hidden>
+        <div class="upload-session-backdrop"></div>
+        <div class="upload-session-panel">
+            <div class="upload-session-head">
+                <div>
+                    <p class="eyebrow">UPLOAD PROGRESS</p>
+                    <h3>上传进度</h3>
+                </div>
+                <button id="closeUploadSessionButton" class="text-button" type="button">关闭</button>
+            </div>
+            <div class="upload-overview">
+                <div class="upload-overview-copy">
+                    <strong id="uploadSummaryText">准备上传</strong>
+                    <span id="uploadStatusText">等待开始</span>
+                </div>
+                <div class="upload-progress">
+                    <div class="upload-progress-track">
+                        <div class="upload-progress-fill" id="uploadTotalProgressBar"></div>
+                    </div>
+                    <strong id="uploadTotalProgressText">0%</strong>
+                </div>
+            </div>
+            <div class="upload-file-list" id="uploadFileList"></div>
+        </div>
+    </section>
+
+    <section class="cleanup-widget" id="cleanupWidget" hidden>
+        <div class="cleanup-widget-panel">
+            <div class="cleanup-widget-head">
+                <div>
+                    <p class="eyebrow">CLEANUP TASK</p>
+                    <h3>云端数据清理</h3>
+                </div>
+                <button id="closeCleanupWidgetButton" class="text-button" type="button">关闭</button>
+            </div>
+            <div class="cleanup-widget-copy">
+                <strong id="cleanupPhaseText">等待开始</strong>
+                <span id="cleanupSummaryText">准备扫描无用数据</span>
+            </div>
+            <div class="upload-progress cleanup-progress">
+                <div class="upload-progress-track">
+                    <div class="upload-progress-fill" id="cleanupProgressBar"></div>
+                </div>
+                <strong id="cleanupProgressText">0%</strong>
+            </div>
+            <div class="cleanup-stats" id="cleanupStats"></div>
+        </div>
+    </section>
+
+    <section class="cleanup-widget" id="deleteWidget" hidden>
+        <div class="cleanup-widget-panel">
+            <div class="cleanup-widget-head">
+                <div>
+                    <p class="eyebrow">DELETE TASK</p>
+                    <h3>删除进度</h3>
+                </div>
+                <button id="closeDeleteWidgetButton" class="text-button" type="button">关闭</button>
+            </div>
+            <div class="cleanup-widget-copy">
+                <strong id="deletePhaseText">等待开始</strong>
+                <span id="deleteSummaryText">准备删除内容</span>
+            </div>
+            <div class="upload-progress cleanup-progress">
+                <div class="upload-progress-track">
+                    <div class="upload-progress-fill" id="deleteProgressBar"></div>
+                </div>
+                <strong id="deleteProgressText">0%</strong>
+            </div>
+            <div class="cleanup-stats" id="deleteStats"></div>
+        </div>
+    </section>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="/admin-assets/app.20260405m.js"></script>
+</body>
+</html>

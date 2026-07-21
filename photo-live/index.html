@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>图片直播 - 光感影视</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <!-- 登录弹窗 -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content login-modal">
+            <button class="modal-close">&times;</button>
+            <h3>🔐 管理员/摄影师登录</h3>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="loginUsername" required placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" required placeholder="请输入密码">
+                </div>
+                <button type="submit" class="btn-primary">登录</button>
+            </form>
+            <div class="login-tip">游客可直接浏览图片，无需登录</div>
+        </div>
+    </div>
+
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <h1 class="live-title" id="liveTitle">📷 图片直播</h1>
+                <span class="live-badge live" id="liveStatus">直播中</span>
+            </div>
+            <div class="header-right">
+                <span class="user-info" id="userInfo" style="display:none">
+                    <span class="user-nickname" id="userNickname"></span>
+                    <button class="btn-icon" id="logoutBtn">退出</button>
+                </span>
+                <button class="btn-icon" id="loginBtn">🔐 登录</button>
+                <button class="btn-icon" id="uploadBtn" style="display:none">📤 上传</button>
+                <button class="btn-icon" id="shareBtn">🔗 分享</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主容器 -->
+    <div class="main-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>📂 相册分类</h3>
+            </div>
+            <nav class="album-nav" id="albumNav">
+                <button class="album-btn active" data-album="all">
+                    <span class="album-icon">📸</span>
+                    <span>全部照片</span>
+                    <span class="album-count" id="countAll">0</span>
+                </button>
+            </nav>
+
+            <!-- 统计信息 -->
+            <div class="stats-info">
+                <h4>📊 数据统计</h4>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-value" id="statPhotos">0</span>
+                        <span class="stat-label">照片数</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="statViews">0</span>
+                        <span class="stat-label">浏览量</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="statLikes">0</span>
+                        <span class="stat-label">点赞数</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 摄影师信息 -->
+            <div class="photographer-info">
+                <h4>📷 摄影团队</h4>
+                <div class="photographer-card">
+                    <div class="avatar">👨‍🎨</div>
+                    <div class="info">
+                        <div class="name">光感影视</div>
+                        <div class="role">专业视频制作团队</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="content">
+            <!-- 工具栏 -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <button class="view-btn active" data-view="masonry" title="瀑布流">▦</button>
+                    <button class="view-btn" data-view="grid" title="网格">▣</button>
+                    <span class="photo-count">共 <strong id="photoCount">0</strong> 张照片</span>
+                </div>
+                <div class="toolbar-right">
+                    <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜索标签...">
+                    <select class="filter-select" id="filterSelect">
+                        <option value="latest">最新发布</option>
+                        <option value="popular">最受欢迎</option>
+                        <option value="oldest">最早上传</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 图片瀑布流 -->
+            <div class="photo-grid" id="photoGrid"></div>
+
+            <!-- 加载提示 -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在加载更多照片...</p>
+            </div>
+
+            <!-- 空状态 -->
+            <div class="empty-state" id="emptyState" style="display:none">
+                <div class="empty-icon">📷</div>
+                <h3>暂无照片</h3>
+                <p>摄影师正在上传中，请稍后再来</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- 图片灯箱 -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-overlay" id="lightboxOverlay"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose">&times;</button>
+            <button class="lightbox-nav prev" id="lightboxPrev">&#10094;</button>
+            <button class="lightbox-nav next" id="lightboxNext">&#10095;</button>
+            
+            <div class="lightbox-image-container">
+                <img src="" alt="" class="lightbox-image" id="lightboxImage">
+            </div>
+            
+            <div class="lightbox-info">
+                <div class="lightbox-header">
+                    <h3 id="lightboxTitle">图片详情</h3>
+                </div>
+                
+                <div class="lightbox-meta">
+                    <div class="meta-item">
+                        <span class="meta-icon">📅</span>
+                        <span id="lightboxTime"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-icon">👤</span>
+                        <span id="lightboxPhotographer"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-icon">👁️</span>
+                        <span id="lightboxViews"></span> 浏览
+                    </div>
+                </div>
+
+                <!-- EXIF 信息 -->
+                <div class="exif-info" id="exifInfo" style="display:none">
+                    <h4>📷 拍摄参数</h4>
+                    <div class="exif-grid" id="exifGrid"></div>
+                </div>
+                
+                <div class="lightbox-tags" id="lightboxTags"></div>
+                
+                <div class="lightbox-actions">
+                    <button class="action-btn" id="lightboxLike">
+                        <span class="action-icon">🤍</span>
+                        <span>点赞</span>
+                        <span class="action-count" id="lightboxLikeCount">0</span>
+                    </button>
+                    <button class="action-btn" id="lightboxDownload">
+                        <span class="action-icon">⬇️</span>
+                        <span>下载原图</span>
+                    </button>
+                    <button class="action-btn" id="lightboxShare">
+                        <span class="action-icon">🔗</span>
+                        <span>分享</span>
+                    </button>
+                    <button class="action-btn delete-btn" id="lightboxDelete" style="display:none">
+                        <span class="action-icon">🗑️</span>
+                        <span>删除</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传弹窗 -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content upload-modal">
+            <button class="modal-close">&times;</button>
+            <h3>📤 上传图片</h3>
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label>选择图片（支持多选，最多20张）</label>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="uploadInput" multiple accept="image/*">
+                        <div class="upload-icon">📁</div>
+                        <p>点击或拖拽图片到此处</p>
+                        <p class="upload-tip">支持 JPG、PNG、WebP 格式，单张最大 10MB</p>
+                    </div>
+                    <div class="preview-grid" id="previewGrid"></div>
+                </div>
+                <div class="form-group">
+                    <label>相册分类</label>
+                    <select id="uploadAlbum"></select>
+                </div>
+                <div class="form-group">
+                    <label>标签（用逗号分隔）</label>
+                    <input type="text" id="uploadTags" placeholder="例如：开幕, 致辞, 嘉宾">
+                </div>
+                <button type="submit" class="btn-primary" id="uploadSubmit">
+                    <span class="btn-text">开始上传</span>
+                    <span class="btn-loading" style="display:none">上传中...</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 分享弹窗 -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <h3>🔗 分享直播</h3>
+            <div class="share-qr" id="shareQR">📱</div>
+            <p class="share-link">
+                <input type="text" id="shareLink" value="" readonly>
+                <button id="copyLink">复制链接</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- 实时通知 -->
+    <div class="live-notification" id="liveNotification">
+        <span class="notification-icon">📡</span>
+        <span class="notification-text">摄影师上传了新照片</span>
+        <button class="notification-close">&times;</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

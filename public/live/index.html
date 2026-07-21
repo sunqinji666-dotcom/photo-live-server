@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>客户相册</title>
+    <link rel="stylesheet" href="/live-assets/style.css?v=20260405l">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="opening-screen" id="openingScreen" hidden>
+        <div class="opening-backdrop">
+            <img id="openingImage" alt="开场封面">
+        </div>
+        <div class="opening-overlay"></div>
+        <div class="opening-panel">
+            <button class="opening-skip" id="openingSkipButton" type="button">3s 跳过</button>
+        </div>
+    </div>
+
+    <div class="access-layer" id="accessLayer" hidden>
+        <div class="access-card">
+            <p class="eyebrow">ACCESS REQUIRED</p>
+            <h2>请输入访问密码</h2>
+            <p id="accessHint">该直播相册已开启访问保护，验证后即可浏览照片。</p>
+            <form id="accessForm" class="access-form">
+                <input id="accessInput" type="text" placeholder="请输入访问密码" required>
+                <button class="primary-button" type="submit">进入相册</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="wechat-tip" id="wechatTip" hidden>
+        <span>微信里点右上角即可转发给客户</span>
+        <button type="button" id="dismissWechatTip">知道了</button>
+    </div>
+
+    <div class="hero-shell">
+        <header class="hero">
+            <div class="hero-backdrop" id="heroBackdrop"></div>
+            <div class="hero-overlay"></div>
+            <div class="hero-topbar">
+                <span class="hero-pill" id="heroPill">照片直播</span>
+                <button id="shareButton" class="hero-ghost-button" type="button">分享给客户</button>
+            </div>
+            <div class="hero-content">
+                <div class="hero-card hero-card-main">
+                    <div class="hero-copy">
+                        <h1 id="liveTitle">加载中...</h1>
+                        <p id="liveSubtitle" class="live-subtitle" hidden></p>
+                        <p id="liveDescription">客户可直接在手机和电脑上查看、筛选和下载照片。</p>
+                        <div class="hero-meta">
+                            <span id="liveDate">待定</span>
+                            <span id="liveLocation">拍摄现场</span>
+                            <span id="liveStatus" class="status-badge">可查看</span>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="metric">
+                                <strong id="metricPhotos">0</strong>
+                                <span>张照片</span>
+                            </div>
+                            <div class="metric">
+                                <strong id="metricViews">0</strong>
+                                <span>次观看</span>
+                            </div>
+                            <div class="metric">
+                                <strong id="metricLikes">0</strong>
+                                <span>人喜欢</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-card hero-card-side">
+                    <div class="hero-card-copy">
+                        <span class="eyebrow" id="shellEyebrow">客户查看页</span>
+                        <strong id="heroCardTitle">向下滑动开始看照片</strong>
+                        <p id="heroShellDescription">微信里打开时优先展示封面，进入后再看照片流。</p>
+                    </div>
+                    <div class="hero-buttons hero-buttons-main" id="heroButtonsMain">
+                        <button id="enterGalleryButton" class="primary-button" type="button">进入相册</button>
+                        <button id="downloadAllButton" class="ghost-button" type="button">打包整场</button>
+                    </div>
+                    <div class="hero-buttons hero-buttons-sub" id="heroButtonsSub">
+                        <button id="toggleSelectButton" class="ghost-button" type="button">批量选择</button>
+                        <button id="desktopHintButton" class="ghost-button subtle-button" type="button">查看提示</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <main class="page">
+        <section class="desktop-rail" id="desktopRail">
+            <article class="desktop-rail-card">
+                <span>浏览模式</span>
+                <strong id="desktopRailMode">桌面浏览工作台</strong>
+                <p>左边看图，右边下载和筛选，适合客户在电脑上精挑细看。</p>
+            </article>
+            <article class="desktop-rail-card">
+                <span>下载方式</span>
+                <strong id="desktopRailDownload">七牛云端打包 ZIP</strong>
+                <p>不占你网站服务器压缩资源，选择照片后交给七牛异步生成下载包。</p>
+            </article>
+            <article class="desktop-rail-card accent">
+                <span>当前提示</span>
+                <strong id="desktopRailHint">点“批量选择”后再勾选照片</strong>
+                <p>手机端更适合直接看图和保存，批量下载原图建议在电脑端完成。</p>
+            </article>
+        </section>
+
+        <section class="feature-strip" id="featureStrip"></section>
+
+        <section class="toolbar">
+                <div class="toolbar-head">
+                    <div class="toolbar-tabs" id="toolbarTabs">
+                        <button class="active" data-tab="latest" type="button">照片</button>
+                        <button data-tab="popular" type="button">热门</button>
+                    </div>
+                <div class="toolbar-actions-cluster">
+                    <div class="desktop-gallery-actions" id="desktopGalleryActions"></div>
+                    <div class="toolbar-quick-actions">
+                        <button class="quick-action" id="favoriteEntryButton" type="button">收藏夹</button>
+                        <button class="quick-action" id="searchToggleButton" type="button">找照片</button>
+                        <button class="quick-action" id="smartFilterToggleButton" type="button">智能筛选</button>
+                    </div>
+                </div>
+            </div>
+            <div class="toolbar-row" id="galleryToolbar">
+                <div class="album-strip" id="albumStrip"></div>
+                <div class="smart-filters" id="smartFilters" hidden>
+                    <div class="smart-filters-head">
+                        <strong>智能筛选</strong>
+                        <button id="clearSmartFiltersButton" class="ghost-button subtle-button" type="button">清空筛选</button>
+                    </div>
+                    <div class="smart-filter-groups" id="smartFilterGroups"></div>
+                </div>
+                <div class="toolbar-actions" id="toolbarActions">
+                    <input id="searchInput" type="search" placeholder="搜索标题、分类、机身、镜头、焦段、ISO、格式">
+                    <select id="sortSelect">
+                        <option value="latest">最新上传</option>
+                        <option value="popular">最多点赞</option>
+                        <option value="oldest">最早拍摄</option>
+                    </select>
+                </div>
+                <div class="search-helper" id="searchHelper" hidden>
+                    <span class="search-helper-label">示例：</span>
+                    <button class="search-chip" type="button" data-search-example="SONY">SONY</button>
+                    <button class="search-chip" type="button" data-search-example="24-70">24-70</button>
+                    <button class="search-chip" type="button" data-search-example="ISO 800">ISO 800</button>
+                    <button class="search-chip" type="button" data-search-example="JPEG">JPEG</button>
+                    <button class="search-chip" type="button" data-search-example="主会场">主会场</button>
+                </div>
+            </div>
+            <div class="selection-bar" id="selectionBar" hidden>
+                <div class="selection-copy">
+                    <strong id="selectionCountText">已选择 0 张照片</strong>
+                    <span id="selectionHintText">桌面端可勾选照片后打包，手机端建议直接收藏后长按保存。</span>
+                </div>
+                <div class="selection-actions">
+                    <button id="selectionClearButton" class="ghost-button" type="button">清空选择</button>
+                    <button id="selectionCancelButton" class="ghost-button" type="button">退出批量</button>
+                    <button id="batchDownloadButton" class="primary-button" type="button">批量下载所选</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid-shell">
+            <div class="mobile-popular-hero" id="mobilePopularHero" hidden></div>
+            <div class="empty-state" id="emptyState" hidden>
+                <h2>暂时还没有照片</h2>
+                <p>摄影师正在整理上传，刷新或稍后再看。</p>
+            </div>
+            <div class="photo-grid" id="photoGrid"></div>
+            <div class="loading" id="loading">
+                <div class="loading-copy">
+                    <strong id="loadingLabel">浏览进度 0%</strong>
+                    <span id="loadingMeta">继续下滑查看更多照片</span>
+                </div>
+                <div class="loading-track">
+                    <div class="loading-fill" id="loadingFill"></div>
+                </div>
+            </div>
+            <button class="mobile-favorite-float" id="mobileFavoriteFloat" type="button" hidden>
+                <span>收藏夹</span>
+                <strong id="mobileFavoriteFloatCount">0</strong>
+            </button>
+        </section>
+    </main>
+
+    <audio id="bgMusic" loop hidden></audio>
+    <div class="toast" id="toast" aria-live="polite" aria-atomic="true">
+        <div class="toast-orbit"></div>
+        <div class="toast-core">
+            <div class="toast-spinner"></div>
+            <div class="toast-copy">
+                <strong class="toast-title" id="toastTitle">处理中</strong>
+                <span class="toast-text" id="toastText">请稍候</span>
+            </div>
+        </div>
+        <div class="toast-progress"></div>
+    </div>
+
+    <div class="lightbox" id="lightbox" hidden>
+        <div class="lightbox-mask" data-close="1"></div>
+        <div class="lightbox-panel">
+            <button class="lightbox-close" data-close="1">×</button>
+            <div class="lightbox-main">
+                <div class="lightbox-topline">
+                    <button class="lightbox-back" data-close="1">返回</button>
+                    <div class="lightbox-header-copy">
+                        <strong id="lightboxLiveTitle">客户相册</strong>
+                        <span id="photoCounter">1 / 1</span>
+                    </div>
+                    <button class="lightbox-info-toggle" id="toggleInfoButton" type="button">信息</button>
+                </div>
+                <div class="lightbox-stage">
+                    <button class="nav-button prev" id="prevButton">‹</button>
+                    <div class="lightbox-viewer">
+                        <div class="lightbox-image-shell" id="lightboxImageShell">
+                            <img id="lightboxImage" alt="">
+                            <div class="gesture-hint" id="gestureHint" hidden>
+                                <span class="gesture-arrow gesture-arrow-left">←<small>上一张</small></span>
+                                <span class="gesture-copy">左右滑动切换照片，点下方按钮加载原图后长按保存</span>
+                                <span class="gesture-arrow gesture-arrow-right">→<small>下一张</small></span>
+                            </div>
+                        </div>
+                        <div class="lightbox-rail">
+                            <input id="photoProgress" class="photo-progress" type="range" min="1" max="1" value="1">
+                            <div class="favorite-badge" id="favoriteBadge">收藏夹 0</div>
+                        </div>
+                        <div class="lightbox-desktop-toolbar">
+                            <button class="lightbox-tool" id="desktopFavoritesButton" type="button">收藏列表</button>
+                            <button class="lightbox-tool" id="printButton" type="button">打印照片</button>
+                            <a id="downloadButton" class="lightbox-tool accent" rel="noreferrer">下载</a>
+                            <button class="lightbox-tool" id="copyPhotoLinkButton" type="button" hidden>复制链接</button>
+                            <button class="lightbox-tool" id="desktopInfoButton" type="button">照片信息</button>
+                            <button class="lightbox-tool" id="autoplayButton" type="button">顺序播放</button>
+                            <button class="lightbox-tool" id="shuffleButton" type="button">随机播放</button>
+                        </div>
+                        <div class="lightbox-thumb-strip" id="lightboxThumbStrip"></div>
+                    </div>
+                    <button class="nav-button next" id="nextButton">›</button>
+                </div>
+                <div class="lightbox-mobile-actions">
+                    <button class="mobile-action" id="likeButton" type="button">点赞</button>
+                    <button class="mobile-action" id="favoriteButton" type="button">收藏</button>
+                    <button class="mobile-action" id="mobileCopyLinkButton" type="button" hidden>复制链接</button>
+                    <button class="mobile-action mobile-action-accent" id="mobileSharpButton" type="button">查看高清图</button>
+                </div>
+            </div>
+            <aside class="lightbox-side" id="lightboxSide">
+                <h3 id="photoTitle">照片详情</h3>
+                <p id="photoMeta"></p>
+                <p class="preview-hint" id="previewHint">当前为快速预览，双击图片可加载更清晰版本。</p>
+                <div class="tag-list" id="tagList"></div>
+                <div class="detail-grid" id="detailGrid"></div>
+            </aside>
+        </div>
+    </div>
+
+    <div class="sheet" id="favoritesDrawer" hidden>
+        <div class="sheet-mask" data-close-sheet="favorites"></div>
+        <div class="sheet-panel">
+            <div class="sheet-handle"></div>
+            <div class="sheet-head">
+                <div>
+                    <h3>我的收藏</h3>
+                    <p id="favoritesSummary">共 0 项</p>
+                </div>
+                <div class="sheet-head-actions">
+                    <button class="sheet-manage" id="favoritesClearButton" type="button">清空</button>
+                    <button class="sheet-manage" id="favoritesManageButton" type="button">管理</button>
+                </div>
+            </div>
+            <div class="favorites-grid" id="favoritesGrid"></div>
+            <div class="favorite-dropzone" id="favoritesDropzone" hidden>
+                <strong>拖到这里移出收藏</strong>
+                <span>想取消收藏时，把照片拖到这里即可。</span>
+            </div>
+            <div class="sheet-actions" id="favoritesActions">
+                <button class="sheet-action" id="favoritesBackButton" type="button">返回</button>
+                <button class="sheet-action" id="favoritesSelectAllButton" type="button">全选</button>
+                <button class="sheet-action accent" id="favoritesDownloadButton" type="button">批量下载</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sheet" id="searchSheet" hidden>
+        <div class="sheet-mask" data-close-sheet="search"></div>
+        <div class="sheet-panel search-sheet-panel">
+            <div class="sheet-handle"></div>
+            <div class="sheet-head">
+                <div>
+                    <h3>找照片</h3>
+                    <p id="searchSheetSummary">按标题、分类、机身、镜头、ISO、格式查找</p>
+                </div>
+                <div class="sheet-head-actions">
+                    <button class="sheet-manage" id="searchSheetCloseButton" type="button">完成</button>
+                </div>
+            </div>
+            <div class="search-sheet-box">
+                <input id="searchSheetInput" type="search" placeholder="输入关键词找照片">
+                <button class="search-sheet-clear" id="searchSheetClearButton" type="button">清空</button>
+            </div>
+            <div class="search-helper search-sheet-helper" id="searchSheetHelper"></div>
+            <div class="smart-filters search-sheet-filters" id="searchSheetFilters" hidden>
+                <div class="smart-filters-head">
+                    <strong>智能筛选</strong>
+                    <button id="clearSearchSheetFiltersButton" class="ghost-button subtle-button" type="button">清空筛选</button>
+                </div>
+                <div class="smart-filter-groups" id="searchSheetFilterGroups"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="job-widget" id="downloadJobModal" hidden>
+        <div class="job-widget-card" id="downloadJobCard">
+            <div class="job-modal-head">
+                <div>
+                    <span class="eyebrow" id="downloadJobEyebrow">桌面端原图下载</span>
+                    <h3 id="downloadJobTitle">正在准备下载任务</h3>
+                </div>
+                <div class="job-widget-head-actions">
+                    <span class="job-status-tag" id="downloadJobStatusTag">打包中</span>
+                    <button class="sheet-manage" id="downloadJobCloseButton" type="button">收起</button>
+                    <button class="job-widget-dismiss" id="downloadJobDismissButton" type="button" aria-label="关闭任务提示">×</button>
+                </div>
+            </div>
+            <p class="job-modal-copy" id="downloadJobCopy">照片会在七牛云端打包，准备好后就可以直接下载。</p>
+            <div class="job-progress-track">
+                <div class="job-progress-fill" id="downloadJobProgressFill"></div>
+            </div>
+            <div class="job-stage-list">
+                <div class="job-stage" id="jobStageQueued">
+                    <strong>1</strong>
+                    <span>已创建</span>
+                </div>
+                <div class="job-stage" id="jobStageProcessing">
+                    <strong>2</strong>
+                    <span>云端打包</span>
+                </div>
+                <div class="job-stage" id="jobStageReady">
+                    <strong>3</strong>
+                    <span>可以下载</span>
+                </div>
+            </div>
+            <div class="job-modal-actions">
+                <a id="downloadJobLink" class="primary-button" href="#" target="_blank" rel="noreferrer" hidden>下载原图 ZIP</a>
+            </div>
+        </div>
+        <button class="job-widget-pill" id="downloadJobRestoreButton" type="button" hidden>
+            <span class="job-widget-pill-dot"></span>
+            <span id="downloadJobRestoreText">下载任务进行中</span>
+        </button>
+    </div>
+
+    <script src="/live-assets/app.js?v=20260405l"></script>
+</body>
+</html>
