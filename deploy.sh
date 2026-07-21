@@ -124,7 +124,7 @@ if [ "$START_SERVICE" = "y" ] || [ "$START_SERVICE" = "Y" ]; then
     echo "======================================"
     echo ""
     echo -e "服务地址: ${GREEN}http://localhost:3000${NC}"
-    echo -e "默认管理员账号: ${YELLOW}admin / admin123${NC}"
+    echo -e "管理员密码由部署环境提供，请勿写入脚本。"
     echo ""
     echo -e "${YELLOW}⚠️  请记得：${NC}"
     echo "1. 修改默认管理员密码"

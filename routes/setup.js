@@ -90,7 +90,7 @@ function normalizeSetupPayload(body) {
         qiniuDomain: String(body.qiniu_domain || '').trim(),
         qiniuZone: String(body.qiniu_zone || 'Zone_z0').trim(),
         adminUsername: String(body.admin_username || 'admin').trim(),
-        adminPassword: String(body.admin_password || 'admin123').trim(),
+        adminPassword: String(body.admin_password || process.env.DEFAULT_ADMIN_PASSWORD || '').trim(),
         adminNickname: String(body.admin_nickname || '系统管理员').trim()
     };
 }

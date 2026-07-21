@@ -2,7 +2,7 @@
 
 require('dotenv').config();
 
-const DEFAULT_SERVER = process.env.PHOTO_LIVE_SERVER || 'http://zhibo.jack-sun.com';
+const DEFAULT_SERVER = process.env.PHOTO_LIVE_SERVER || 'http://127.0.0.1:3000';
 
 async function main() {
     const args = process.argv.slice(2);
@@ -194,7 +194,7 @@ function printHelp() {
 photo-live CLI
 
 用法：
-  node scripts/photo-live-cli.js auth create-key --username admin --password admin123 --name "Codex CLI"
+  node scripts/photo-live-cli.js auth create-key --username admin --password "$PHOTO_LIVE_ADMIN_PASSWORD" --name "CLI"
   PHOTO_LIVE_API_KEY=plk_xxx node scripts/photo-live-cli.js auth whoami
   PHOTO_LIVE_API_KEY=plk_xxx node scripts/photo-live-cli.js lives list
   PHOTO_LIVE_API_KEY=plk_xxx node scripts/photo-live-cli.js lives create --title "新相册" --date "2026-04-04 10:00:00" --location "南宁"
@@ -202,7 +202,7 @@ photo-live CLI
   PHOTO_LIVE_API_KEY=plk_xxx node scripts/photo-live-cli.js cleanup status --job 2
 
 可选参数：
-  --server http://zhibo.jack-sun.com
+  --server http://127.0.0.1:3000
   --api-key plk_xxx
 `.trim() + '\n');
 }

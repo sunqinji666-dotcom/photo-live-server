@@ -50,9 +50,9 @@ node server.js
 ## 快速部署（宝塔面板）
 
 ```bash
-# 1. 上传文件到 /www/wwwroot/photo-live
+# 1. 上传文件到 /path/to/photo-live
 # 2. SSH 执行
-cd /www/wwwroot/photo-live
+cd /path/to/photo-live
 chmod +x deploy.sh
 ./deploy.sh
 
@@ -69,9 +69,9 @@ chmod +x deploy.sh
 
 | 角色 | 用户名 | 密码 | 权限 |
 |------|--------|------|------|
-| 管理员 | admin | admin123 | 所有权限 |
-| 摄影师 | photographer1 | admin123 | 上传/管理图片 |
-| 摄影师 | photographer2 | admin123 | 上传/管理图片 |
+| 管理员 | admin | $DEFAULT_ADMIN_PASSWORD | 所有权限 |
+| 摄影师 | photographer1 | $DEFAULT_ADMIN_PASSWORD | 上传/管理图片 |
+| 摄影师 | photographer2 | $DEFAULT_ADMIN_PASSWORD | 上传/管理图片 |
 
 **⚠️ 首次使用后请立即修改密码！**
 

@@ -1,4 +1,12 @@
 # 📸 图片直播系统
+![Photo Live Server 主视觉](docs/assets/hero-system-v1.png)
+
+**中文** · [English](docs/README.en.md) · [日本語](docs/README.ja.md) · [繁體中文](docs/README.zh-TW.md) · [한국어](docs/README.ko.md) · [Español](docs/README.es.md) · [Français](docs/README.fr.md) · [Deutsch](docs/README.de.md) · [Português](docs/README.pt-BR.md) · [Русский](docs/README.ru.md) · [العربية](docs/README.ar.md) · [हिन्दी](docs/README.hi.md) · [Bahasa Indonesia](docs/README.id.md)
+
+Contact: **Jacksun** · [qinji@jack-sun.com](mailto:qinji@jack-sun.com)
+
+> A self-hosted photo event delivery service for uploads, galleries, and live updates.
+
 
 专业的图片直播平台，支持实时上传、在线浏览、点赞互动等功能。
 
@@ -34,12 +42,12 @@
 1. 登录宝塔面板
 2. 点击「网站」>「添加站点」
 3. 填写域名，选择 PHP 版本为「纯静态」
-4. 记录网站根目录路径（如 `/www/wwwroot/your-domain.com`）
+4. 记录网站根目录路径（如 `/path/to/photo-live`）
 
 #### 2. 上传文件
 ```bash
 # 方式一：通过 Git
-cd /www/wwwroot/your-domain.com
+cd /path/to/photo-live
 git clone <your-repo-url> .
 
 # 方式二：通过宝塔文件管理器
@@ -48,7 +56,7 @@ git clone <your-repo-url> .
 
 #### 3. 安装依赖
 ```bash
-cd /www/wwwroot/your-domain.com
+cd /path/to/photo-live
 npm install --production
 ```
 
@@ -84,7 +92,7 @@ QINIU_DOMAIN=https://你的七牛云域名
 
 #### 6. 创建 Node.js 项目
 1. 在宝塔面板点击「Node.js 项目」>「添加项目」
-2. 项目路径：`/www/wwwroot/your-domain.com`
+2. 项目路径：`/path/to/photo-live`
 3. 启动文件：`server.js`
 4. 端口：`3000`
 5. 点击「启动」
@@ -100,7 +108,7 @@ QINIU_DOMAIN=https://你的七牛云域名
 #### 8. 初始化默认账号
 默认管理员账号：
 - 用户名：`admin`
-- 密码：`admin123`
+- 密码：`$DEFAULT_ADMIN_PASSWORD`
 
 **⚠️ 首次登录后请立即修改密码！**
 
@@ -135,7 +143,7 @@ photo-live-server/
 
 ### 自动化入口
 ```bash
-node scripts/photo-live-cli.js auth create-key --username admin --password admin123 --name "CLI Access"
+node scripts/photo-live-cli.js auth create-key --username admin --password $DEFAULT_ADMIN_PASSWORD --name "CLI Access"
 PHOTO_LIVE_API_KEY=plk_xxx node scripts/photo-live-cli.js lives list
 PHOTO_LIVE_API_KEY=plk_xxx node scripts/photo-live-cli.js cleanup run
 ```
