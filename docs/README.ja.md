@@ -2,7 +2,7 @@
 
 A self-hosted photo event delivery service for uploads, galleries, and live updates.
 
-![プロジェクトのビジュアル](docs/assets/hero-system-v1.png)
+![photo-live-server project visual](assets/photo-live-server-hero.png)
 
 ## できること
 
